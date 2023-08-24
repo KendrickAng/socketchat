@@ -1,2 +1,5 @@
-# intelliJ config files
+# IntelliJ config files
 java-networking.iml
+
+# Compiled class files
+out/
