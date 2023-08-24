@@ -6,6 +6,7 @@ import java.util.Map;
 public class Flag {
     private static final Map<String, StringVar> strings = new HashMap<>();
     private static final Map<String, IntegerVar> integers = new HashMap<>();
+    private static final Map<String, BoolVar> bools = new HashMap<>();
     private static final String FLAG_PREFIX = "--";
 
     public static StringVar string(String name, String defaultValue, String helpMessage) {
@@ -17,6 +18,12 @@ public class Flag {
     public static IntegerVar integer(String name, Integer defaultValue, String helpMessage) {
         IntegerVar ret = new IntegerVar(name, defaultValue, helpMessage);
         integers.put(name, ret);
+        return ret;
+    }
+
+    public static BoolVar bool(String name, Boolean defaultValue, String helpMessage) {
+        BoolVar ret = new BoolVar(name, defaultValue, helpMessage);
+        bools.put(name, ret);
         return ret;
     }
 
@@ -59,6 +66,15 @@ public class Flag {
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(String.format("Flag %s must be an integer, got %s", name, value));
             }
+            var.setValue(val);
+        }
+
+        // handle bool flags
+        if (bools.containsKey(name)) {
+            BoolVar var = bools.get(name);
+
+            boolean val = false;
+            val = Boolean.parseBoolean(value);
             var.setValue(val);
         }
     }
