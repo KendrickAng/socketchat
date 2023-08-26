@@ -73,7 +73,7 @@ public class Flag {
         if (bools.containsKey(name)) {
             BoolVar var = bools.get(name);
 
-            boolean val = false;
+            boolean val;
             val = Boolean.parseBoolean(value);
             var.setValue(val);
         }

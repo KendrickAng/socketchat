@@ -3,3 +3,9 @@ build:
 
 run: build
 	@java -cp out Main
+
+run-client: build
+	@java -cp out Main --client=true --port=9090
+
+run-server: build
+	@java -cp out Main --server=true --port=9090
