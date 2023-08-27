@@ -1,3 +1,5 @@
+import chatclient.ChatClient;
+import chatserver.ChatServer;
 import config.Config;
 import flag.BoolVar;
 import flag.Flag;
@@ -52,77 +54,22 @@ public class Main {
     }
 
     private static void runServer(int port) {
-        // create a server socket that listens on all local addresses on the given port
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            logger.info(String.format("Listening on port %d", port));
-
-            AtomicBoolean listening = new AtomicBoolean(true);
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                logger.info("Shutting down server");
-                listening.set(false);
-                Thread.currentThread().interrupt();
-                logger.info("Server shutdown complete");
-            }));
-
-            while (listening.get()) {
-                try {
-                    Socket clientSocket = serverSocket.accept();
-
-                    logger.info(String.format("Accepted connection from %s:%d%n", clientSocket.getInetAddress(), clientSocket.getPort()));
-
-                    handleConnectionInThread(clientSocket);
-                } catch (IOException e) {
-                    logger.severe(String.format("Error accepting connection: %s", e.getMessage()));
-                }
-            }
+            logger.info(String.format("Server: listening on port %d", serverSocket.getLocalPort()));
+            new ChatServer(serverSocket).run();
         } catch (IOException e) {
-            logger.severe(String.format("Error creating server socket: %s", e.getMessage()));
+            // log error and return - exiting the program
+            logger.severe(String.format("Error in server socket: %s", e.getMessage()));
         }
     }
 
     private static void runClient(int port) {
         try (Socket socket = new Socket("localhost", port)) {
-            logger.info(String.format("Connected to %s:%d", socket.getInetAddress(), socket.getPort()));
-
-            String message = "Hello from client";
-            socket.getOutputStream().write(message.getBytes());
+            logger.info(String.format("Client: connected to %s:%d", socket.getInetAddress(), socket.getPort()));
+            new ChatClient(socket).run();
         } catch (IOException e) {
-            logger.severe(String.format("Error creating client socket: %s", e.getMessage()));
-        }
-    }
-
-    private static void handleConnectionInThread(Socket clientSocket) {
-        HandlerThread handlerThread = new HandlerThread(clientSocket);
-        handlerThread.start();
-
-        try {
-            handlerThread.join();
-        } catch (InterruptedException e) {
-            logger.severe(String.format("Error handling connection: %s", e.getMessage()));
-        }
-    }
-}
-
-class HandlerThread extends Thread {
-
-    private static final Logger logger = Logger.getGlobal();
-    private final Socket clientSocket;
-
-    public HandlerThread(Socket clientSocket) {
-        this.clientSocket = clientSocket;
-    }
-
-    @Override
-    public void run() {
-        try {
-            byte[] inputBytes = clientSocket.getInputStream().readAllBytes();
-
-            String msg = new String(inputBytes, Charset.defaultCharset());
-
-            logger.info(String.format("Received message from %s:%s: %s",
-                    clientSocket.getInetAddress(), clientSocket.getPort(), msg));
-        } catch (IOException e) {
-            logger.severe(String.format("Error handling connection: %s", e.getMessage()));
+            // log error and return - exiting the program
+            logger.severe(String.format("Error in client socket: %s", e.getMessage()));
         }
     }
 }
