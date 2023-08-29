@@ -39,6 +39,7 @@ public class Main {
         if (config.getIsServer()) System.out.println("  Mode:      Server");
 
         Logger.getGlobal().setLevel(Level.parse(flagLogLevel.getValue()));
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s %n");
 
         run(config);
     }
