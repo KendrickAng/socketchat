@@ -47,4 +47,24 @@ public class FlagTest {
 
         assertEquals(0, ageFlag.getValue().intValue());
     }
+
+    @Test
+    public void testBoolFlag_succeedsWithSingleFlag() {
+        BoolVar isStudentFlag = Flag.bool("isStudent", false, "help");
+        String[] args = new String[]{"--isStudent=true"};
+
+        Flag.parse(args);
+
+        assertEquals(true, isStudentFlag.getValue());
+    }
+
+    @Test
+    public void testBoolFlag_succeedsWithDefault() {
+        BoolVar isStudentFlag = Flag.bool("isStudent", false, "help");
+        String[] args = new String[]{};
+
+        Flag.parse(args);
+
+        assertEquals(false, isStudentFlag.getValue());
+    }
 }
