@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -60,32 +59,35 @@ public class ChatServer {
         Thread t = new Thread(() -> {
             while (isRunning.get()) {
                 // multiple clients may exit in the same cycle
-                List<PeerModule> toRemove = new ArrayList<>();
+                List<PeerModule> toRemove = Collections.synchronizedList(new ArrayList<>());
 
-                for (PeerModule client : clients) {
-                    try {
-                        // read input from one client
-                        Socket socket = client.getClientSocket();
+                synchronized (clients) {
+                    for (PeerModule client : clients) {
+                        try {
+                            // read input from one client
+                            Socket socket = client.getClientSocket();
 
-                        if (socket.getInputStream().available() > 0) {
-                            byte[] buffer = new byte[socket.getInputStream().available()];
-                            int read = socket.getInputStream().read(buffer);
+                            if (socket.getInputStream().available() > 0) {
+                                byte[] buffer = new byte[socket.getInputStream().available()];
+                                @SuppressWarnings("unused")
+                                int read = socket.getInputStream().read(buffer);
 
-                            // convert the client's input to a string
-                            String clientInput = new String(buffer, StandardCharsets.UTF_8);
+                                // convert the client's input to a string
+                                String clientInput = new String(buffer, StandardCharsets.UTF_8);
 
-                            // if client input an exit command, remove them from the list of clients
-                            if (clientInput.equals(Constants.CLIENT_EXIT_MESSAGE)) {
-                                toRemove.add(client);
+                                // if client input an exit command, remove them from the list of clients
+                                if (clientInput.equals(Constants.CLIENT_EXIT_MESSAGE)) {
+                                    toRemove.add(client);
+                                }
+
+                                // broadcast the client's input to all other clients
+                                client.broadcast(clientInput);
+
+                                logger.info(String.format("%s sent message: %s", client.getUniqueIdentifier(), clientInput));
                             }
-
-                            // broadcast the client's input to all other clients
-                            client.broadcast(clientInput);
-
-                            logger.info(String.format("%s sent message: %s", client.getUniqueIdentifier(), clientInput));
+                        } catch (IOException e) {
+                            logger.severe(String.format("Error reading client input: %s", e.getMessage()));
                         }
-                    } catch (IOException e) {
-                        logger.severe(String.format("Error reading client input: %s", e.getMessage()));
                     }
                 }
 
