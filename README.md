@@ -2,6 +2,8 @@
 
 Simple chat program using java sockets.
 
+![image](https://github.com/KendrickAng/socketchat/assets/38814428/05b3881f-0d64-4ef3-8954-393d5e0c53e6)
+
 ## Quickstart
 
 First, build the project.
